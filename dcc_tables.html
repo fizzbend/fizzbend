@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCC Table Reference</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        
+        /* SIDEBAR CSS */
+        #sidebar {
+            width: 320px;
+            min-width: 320px; 
+            flex-shrink: 0; 
+            box-sizing: border-box; 
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #sidebar h2 {
+            text-align: center;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+        
+        /* Category Header Styles */
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 8px 0;
+            user-select: none;
+            color: #e74c3c;
+            word-wrap: break-word; 
+            flex-grow: 1;
+        }
+        .category:hover {
+            color: #f1c40f;
+        }
+        .delete-cat-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0 5px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        .category-header:hover .delete-cat-btn {
+            opacity: 1;
+        }
+        .delete-cat-btn:hover {
+            color: #c0392b;
+            font-weight: bold;
+            transform: scale(1.2);
+        }
+
+        .nested-list {
+            display: none;
+            margin-top: 5px;
+        }
+        .nested-list.active {
+            display: block;
+        }
+        .table-link {
+            font-weight: normal;
+            cursor: pointer;
+            padding: 5px 0;
+            color: #bdc3c7;
+            font-size: 0.9em;
+            word-wrap: break-word; 
+        }
+        .table-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .add-btn {
+            margin-top: 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .add-btn:hover {
+            background-color: #2ecc71;
+        }
+        .data-management {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #34495e;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .data-btn {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: normal;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .data-btn:hover { background-color: #2c3e50; border: 1px solid #7f8c8d;}
+        
+        /* CONTENT CSS */
+        #content {
+            flex-grow: 1;
+            min-width: 0; 
+            padding: 30px;
+            overflow-y: auto;
+            overflow-x: auto; 
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        
+        .main-view-area {
+            flex-grow: 1;
+        }
+
+        /* View Container Header & Buttons */
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .view-titles h1 {
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            word-wrap: break-word;
+        }
+        .view-titles p {
+            margin: 0;
+            color: #7f8c8d;
+        }
+        .view-actions {
+            display: none; 
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            margin-left: 20px;
+        }
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            white-space: nowrap;
+        }
+        .sort-btn { background-color: #8e44ad; }
+        .sort-btn:hover { background-color: #9b59b6; }
+        .edit-btn { background-color: #f39c12; }
+        .edit-btn:hover { background-color: #d68910; }
+        .delete-btn { background-color: #e74c3c; }
+        .delete-btn:hover { background-color: #c0392b; }
+
+        #table-container {
+            width: 100%;
+            overflow-x: auto; 
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Form & Builder Styles */
+        #form-container {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .category-row {
+            display: flex;
+            gap: 10px;
+        }
+        .category-row select {
+            flex-grow: 1;
+        }
+        .add-cat-btn {
+            background-color: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 15px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .add-cat-btn:hover {
+            background-color: #9b59b6;
+        }
+        
+        /* Visual Builder Grid Styles */
+        #builder-grid {
+            margin-top: 5px;
+            background: white;
+            overflow-x: auto;
+            display: block;
+        }
+        #builder-grid input {
+            width: 100%;
+            min-width: 120px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        #builder-grid th {
+            background-color: #34495e;
+        }
+        .action-cell {
+            width: 40px;
+            min-width: 40px !important;
+            text-align: center;
+            background-color: transparent !important;
+            border: none !important;
+        }
+        .del-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .del-btn:hover { background-color: #c0392b; }
+        
+        .grid-controls {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .grid-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .grid-btn:hover { background-color: #8e44ad; }
+        .grid-btn.remove { background-color: #e67e22; }
+        .grid-btn.remove:hover { background-color: #d35400; }
+
+        .save-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+        .save-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Footer Styles */
+        .site-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+        .site-footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .site-footer a:hover {
+            text-decoration: underline;
+        }
+        .legal-blurb {
+            font-size: 0.9em;
+            margin-top: 8px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>DCC Tables</h2>
+    <ul id="sidebar-lists">
+        </ul>
+
+    <div style="flex-grow: 1;"></div>
+    <button class="add-btn" onclick="startNewTable()">+ Add New Table</button>
+    
+    <div class="data-management">
+        <button class="data-btn" onclick="exportData()">💾 Export Backup (Share)</button>
+        <input type="file" id="import-file" style="display:none" accept=".json" onchange="importData(event)">
+        <button class="data-btn" onclick="document.getElementById('import-file').click()">📂 Import Backup</button>
+    </div>
+</div>
+
+<div id="content">
+    <div class="main-view-area">
+        <div id="view-container">
+            <div class="view-header">
+                <div class="view-titles">
+                    <h1 id="table-title">Welcome to the DCC Lookup Tool</h1>
+                    <p id="table-desc">Select a category on the left, or click "+ Add New Table" below to build your own.</p>
+                </div>
+                <div class="view-actions" id="view-actions">
+                    <button class="action-btn sort-btn" onclick="sortCurrentTable()" title="Sort numerically by the first column">🔽 Sort (1st Col)</button>
+                    <button class="action-btn edit-btn" onclick="editCurrentTable()">✏️ Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteCurrentTable()">🗑️ Delete</button>
+                </div>
+            </div>
+            <div id="table-container"></div>
+        </div>
+
+        <div id="form-container">
+            <h1 id="form-title">Build a Custom Table</h1>
+            <p>Fill out the details and build your table using the grid below. It saves directly to your browser.</p>
+            
+            <div class="form-group">
+                <label for="new-category">Select Category:</label>
+                <div class="category-row">
+                    <select id="new-category">
+                        </select>
+                    <button type="button" class="add-cat-btn" onclick="addNewCategory()">+ New Category</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="new-title">Table Title:</label>
+                <input type="text" id="new-title" placeholder="e.g. Flaming Hands (Lvl 1)">
+            </div>
+
+            <div class="form-group">
+                <label for="new-desc">Description / Subtitle:</label>
+                <input type="text" id="new-desc" placeholder="e.g. Range: 15ft | Duration: 1 round">
+            </div>
+
+            <div class="form-group">
+                <label>Table Builder:</label>
+                <table id="builder-grid">
+                    <thead>
+                        <tr id="builder-headers">
+                            <th><input type="text" value="Roll"></th>
+                            <th><input type="text" value="Result"></th>
+                            <th class="action-cell"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="builder-body">
+                        <tr>
+                            <td><input type="text" value="1"></td>
+                            <td><input type="text"></td>
+                            <td class="action-cell"><button type="button" class="del-btn" onclick="removeRow(this)">X</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="grid-controls">
+                    <button type="button" class="grid-btn" onclick="addRow()">+ Add Row</button>
+                    <button type="button" class="grid-btn" onclick="addMultipleRows()">+ Add Multiple Rows</button>
+                    <button type="button" class="grid-btn" onclick="addColumn()">+ Add Column</button>
+                    <button type="button" class="grid-btn remove" onclick="removeColumn()">- Remove Last Column</button>
+                </div>
+            </div>
+
+            <button class="save-btn" onclick="saveTable()">💾 Save Table</button>
+            <button class="save-btn" style="background-color: #95a5a6; margin-left: 10px;" onclick="cancelAdd()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="site-footer">
+        <p>Created by Fizzbend, an amateur wizard. For any questions, comments, or concerns please contact <a href="mailto:fancytrollproductions@gmail.com">fancytrollproductions@gmail.com</a>.</p>
+        <p class="legal-blurb">Dungeon Crawl Classics and DCC RPG are copyright © Goodman Games. Dungeon Crawl Classics is a trademark of Goodman Games. This tool is an independent creation and is not affiliated with Goodman Games.</p>
+    </div>
+
+</div>
+
+<script>
+    // --- APP STATE ---
+    let currentViewKey = null; 
+    let editingTableKey = null; 
+
+    // --- CORE DATA & STORAGE ---
+    let appCategories = {};
+    let tableData = {};
+
+    async function loadFromStorage() {
+        const savedCats = localStorage.getItem('dccCategories');
+        const savedData = localStorage.getItem('dccCustomTables');
+
+        if (savedCats && savedData) {
+            // Load existing data from the browser
+            appCategories = JSON.parse(savedCats);
+            tableData = JSON.parse(savedData);
+            renderCategories();
+            renderTableLinks();
+        } else {
+            // Fetch default tables from the server for new users
+            try {
+                const response = await fetch('default_tables.json');
+                if (response.ok) {
+                    const defaultData = await response.json();
+                    appCategories = defaultData.categories || {};
+                    tableData = defaultData.tables || {};
+                    
+                    // Save to local storage for future visits
+                    localStorage.setItem('dccCategories', JSON.stringify(appCategories));
+                    localStorage.setItem('dccCustomTables', JSON.stringify(tableData));
+                    
+                    renderCategories();
+                    renderTableLinks();
+                } else {
+                    console.log("Could not find default_tables.json.");
+                }
+            } catch (error) {
+                console.log("Error loading default tables.", error);
+            }
+        }
+    }
+
+    // --- IMPORT / EXPORT LOGIC ---
+    function exportData() {
+        const dataToSave = {
+            categories: appCategories,
+            tables: tableData
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToSave));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "dcc_custom_tables.json");
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                if (importedData.categories && importedData.tables) {
+                    appCategories = { ...appCategories, ...importedData.categories };
+                    tableData = { ...tableData, ...importedData.tables };
+                    
+                    localStorage.setItem('dccCategories', JSON.stringify(appCategories));
+                    localStorage.setItem('dccCustomTables', JSON.stringify(tableData));
+                    
+                    renderCategories();
+                    renderTableLinks();
+                    alert("Backup data imported successfully!");
+                } else {
+                    alert("Invalid file format. Ensure it's a valid backup file.");
+                }
+            } catch (err) {
+                alert("Error reading file.");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; 
+    }
+
+    // --- CATEGORY DELETION ---
+    function deleteCategory(key, event) {
+        event.stopPropagation(); // Prevents the list from toggling when clicking the X
+
+        const categoryName = appCategories[key];
+        const tablesInCat = Object.keys(tableData).filter(tKey => tableData[tKey].category === key);
+        
+        let confirmMsg = `Are you sure you want to delete the category "${categoryName}"?`;
+        if (tablesInCat.length > 0) {
+            confirmMsg += `\n\nWARNING: This will also permanently delete the ${tablesInCat.length} table(s) inside it!`;
+        }
+
+        if (confirm(confirmMsg)) {
+            // Delete associated tables
+            tablesInCat.forEach(tKey => {
+                delete tableData[tKey];
+                
+                // If the user was currently looking at a deleted table, clear the screen
+                if (currentViewKey === tKey) {
+                    currentViewKey = null;
+                    document.getElementById('table-title').innerText = "Category Deleted";
+                    document.getElementById('table-desc').innerText = "Select another table from the sidebar.";
+                    document.getElementById('table-container').innerHTML = "";
+                    document.getElementById('view-actions').style.display = 'none';
+                }
+            });
+
+            // Delete the category itself
+            delete appCategories[key];
+
+            // Save the newly scrubbed data to browser storage
+            localStorage.setItem('dccCategories', JSON.stringify(appCategories));
+            localStorage.setItem('dccCustomTables', JSON.stringify(tableData));
+
+            // Re-render UI
+            renderCategories();
+            renderTableLinks();
+        }
+    }
+
+    // --- DYNAMIC RENDERING (WITH ALPHABETICAL SORTING) ---
+    function renderCategories() {
+        const sidebar = document.getElementById('sidebar-lists');
+        const select = document.getElementById('new-category');
+        
+        sidebar.innerHTML = '';
+        select.innerHTML = '';
+
+        // Sort categories alphabetically by their display name
+        const sortedCategories = Object.entries(appCategories).sort((a, b) => a[1].localeCompare(b[1]));
+
+        for (const [key, name] of sortedCategories) {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="category-header">
+                    <div class="category" onclick="toggleList('${key}')">▶ ${name}</div>
+                    <button class="delete-cat-btn" onclick="deleteCategory('${key}', event)" title="Delete Category">×</button>
+                </div>
+                <ul id="${key}" class="nested-list"></ul>
+            `;
+            sidebar.appendChild(li);
+
+            const option = document.createElement('option');
+            option.value = key;
+            option.innerText = name;
+            select.appendChild(option);
+        }
+    }
+
+    function renderTableLinks() {
+        const nestedLists = document.querySelectorAll('.nested-list');
+        nestedLists.forEach(ul => ul.innerHTML = '');
+
+        // Sort tables alphabetically by their title
+        const sortedTables = Object.entries(tableData).sort((a, b) => a[1].title.localeCompare(b[1].title));
+
+        for (const [key, data] of sortedTables) {
+            const ul = document.getElementById(data.category);
+            if (ul) {
+                const li = document.createElement('li');
+                li.className = 'table-link';
+                li.setAttribute('onclick', `showTable('${key}')`);
+                li.innerText = data.title;
+                ul.appendChild(li);
+            }
+        }
+    }
+
+    function addNewCategory() {
+        const catName = prompt("Enter the name for your new category:");
+        if (!catName || catName.trim() === "") return;
+
+        const catKey = 'cat_' + catName.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now();
+        appCategories[catKey] = catName.trim();
+        localStorage.setItem('dccCategories', JSON.stringify(appCategories));
+
+        renderCategories();
+        renderTableLinks();
+        document.getElementById('new-category').value = catKey;
+    }
+
+    // --- UI NAVIGATION ---
+    function toggleList(id) {
+        const el = document.getElementById(id);
+        const parent = el.previousElementSibling.querySelector('.category');
+        if (el.classList.contains('active')) {
+            el.classList.remove('active');
+            parent.innerText = parent.innerText.replace('▼', '▶');
+        } else {
+            el.classList.add('active');
+            parent.innerText = parent.innerText.replace('▶', '▼');
+        }
+    }
+
+    function showTable(key) {
+        currentViewKey = key;
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('view-container').style.display = 'block';
+
+        const titleEl = document.getElementById('table-title');
+        const descEl = document.getElementById('table-desc');
+        const containerEl = document.getElementById('table-container');
+        const actionsEl = document.getElementById('view-actions');
+
+        if (tableData[key]) {
+            titleEl.innerText = tableData[key].title;
+            descEl.innerText = tableData[key].desc;
+            containerEl.innerHTML = tableData[key].html;
+            actionsEl.style.display = 'flex'; 
+        }
+    }
+
+    // --- SORT / EDIT / DELETE LOGIC ---
+    function sortCurrentTable() {
+        if (!currentViewKey || !tableData[currentViewKey]) return;
+
+        const data = tableData[currentViewKey];
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = data.html;
+        const table = tempDiv.querySelector('table');
+        
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll('tr'));
+        const headers = [];
+        const dataRows = [];
+
+        rows.forEach(row => {
+            if (row.querySelector('th')) {
+                headers.push(row);
+            } else {
+                dataRows.push(row);
+            }
+        });
+
+        dataRows.sort((a, b) => {
+            let valA = a.cells[0] ? a.cells[0].innerText.trim() : "";
+            let valB = b.cells[0] ? b.cells[0].innerText.trim() : "";
+
+            let matchA = valA.match(/-?\d+/);
+            let matchB = valB.match(/-?\d+/);
+
+            if (matchA && matchB) {
+                return parseInt(matchA[0], 10) - parseInt(matchB[0], 10);
+            }
+            return valA.localeCompare(valB, undefined, {numeric: true});
+        });
+
+        const newTable = document.createElement('table');
+        headers.forEach(h => newTable.appendChild(h.cloneNode(true)));
+        dataRows.forEach(r => newTable.appendChild(r.cloneNode(true)));
+
+        data.html = newTable.outerHTML;
+        tableData[currentViewKey] = data;
+        
+        let customTables = {};
+        const existingSaves = localStorage.getItem('dccCustomTables');
+        if (existingSaves) {
+            customTables = JSON.parse(existingSaves);
+        }
+        customTables[currentViewKey] = data;
+        localStorage.setItem('dccCustomTables', JSON.stringify(customTables));
+
+        showTable(currentViewKey);
+    }
+
+    function deleteCurrentTable() {
+        if (!currentViewKey) return;
+        
+        if(confirm("Are you sure you want to delete this table? This cannot be undone.")) {
+            delete tableData[currentViewKey];
+            
+            let customTables = {};
+            const existingSaves = localStorage.getItem('dccCustomTables');
+            if (existingSaves) {
+                customTables = JSON.parse(existingSaves);
+                delete customTables[currentViewKey];
+                localStorage.setItem('dccCustomTables', JSON.stringify(customTables));
+            }
+            
+            renderTableLinks();
+            currentViewKey = null;
+            document.getElementById('table-title').innerText = "Table Deleted";
+            document.getElementById('table-desc').innerText = "Select another table from the sidebar.";
+            document.getElementById('table-container').innerHTML = "";
+            document.getElementById('view-actions').style.display = 'none';
+        }
+    }
+
+    function editCurrentTable() {
+        if (!currentViewKey || !tableData[currentViewKey]) return;
+        
+        editingTableKey = currentViewKey;
+        const data = tableData[currentViewKey];
+        
+        document.getElementById('form-title').innerText = "Edit Table";
+        document.getElementById('new-title').value = data.title;
+        document.getElementById('new-desc').value = data.desc;
+        document.getElementById('new-category').value = data.category;
+        
+        loadHtmlIntoBuilder(data.html);
+        
+        document.getElementById('view-container').style.display = 'none';
+        document.getElementById('form-container').style.display = 'block';
+    }
+
+    function startNewTable() {
+        editingTableKey = null;
+        document.getElementById('form-title').innerText = "Build a Custom Table";
+        document.getElementById('new-title').value = '';
+        document.getElementById('new-desc').value = '';
+        resetBuilderGrid();
+        
+        document.getElementById('view-container').style.display = 'none';
+        document.getElementById('form-container').style.display = 'block';
+    }
+
+    function cancelAdd() {
+        editingTableKey = null;
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('view-container').style.display = 'block';
+    }
+
+    // --- VISUAL TABLE BUILDER LOGIC ---
+    function loadHtmlIntoBuilder(htmlString) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlString;
+        const table = tempDiv.querySelector('table');
+        
+        if (!table) return resetBuilderGrid();
+
+        const headers = table.querySelectorAll('th');
+        const rows = table.querySelectorAll('tr');
+
+        const headerRow = document.getElementById('builder-headers');
+        headerRow.innerHTML = ''; 
+        headers.forEach(th => {
+            const newTh = document.createElement('th');
+            newTh.innerHTML = `<input type="text" value="${th.innerText.replace(/"/g, '&quot;')}">`;
+            headerRow.appendChild(newTh);
+        });
+        
+        const actionTh = document.createElement('th');
+        actionTh.className = 'action-cell';
+        headerRow.appendChild(actionTh);
+
+        const tbody = document.getElementById('builder-body');
+        tbody.innerHTML = ''; 
+        
+        let validRowsFound = false;
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) { 
+                validRowsFound = true;
+                const newTr = document.createElement('tr');
+                cells.forEach(td => {
+                    const newTd = document.createElement('td');
+                    newTd.innerHTML = `<input type="text" value="${td.innerText.replace(/"/g, '&quot;')}">`;
+                    newTr.appendChild(newTd);
+                });
+                const actionTd = document.createElement('td');
+                actionTd.className = 'action-cell';
+                actionTd.innerHTML = '<button type="button" class="del-btn" onclick="removeRow(this)">X</button>';
+                newTr.appendChild(actionTd);
+                tbody.appendChild(newTr);
+            }
+        });
+
+        if (!validRowsFound) {
+            addRow(); 
+        }
+    }
+
+    function addColumn() {
+        const headerRow = document.getElementById('builder-headers');
+        const newTh = document.createElement('th');
+        newTh.innerHTML = '<input type="text" placeholder="Header">';
+        headerRow.insertBefore(newTh, headerRow.lastElementChild);
+
+        const bodyRows = document.querySelectorAll('#builder-body tr');
+        bodyRows.forEach(row => {
+            const newTd = document.createElement('td');
+            newTd.innerHTML = '<input type="text" placeholder="Value">';
+            row.insertBefore(newTd, row.lastElementChild);
+        });
+    }
+
+    function removeColumn() {
+        const headerRow = document.getElementById('builder-headers');
+        if (headerRow.children.length <= 2) {
+            alert("You must have at least one column.");
+            return;
+        }
+        
+        headerRow.removeChild(headerRow.children[headerRow.children.length - 2]);
+
+        const bodyRows = document.querySelectorAll('#builder-body tr');
+        bodyRows.forEach(row => {
+            row.removeChild(row.children[row.children.length - 2]);
+        });
+    }
+
+    function addRow() {
+        const tbody = document.getElementById('builder-body');
+        const headerRow = document.getElementById('builder-headers');
+        const colCount = headerRow.children.length - 1;
+
+        // SMART AUTO-NUMBERING LOGIC
+        let nextNum = 1;
+        const existingRows = tbody.querySelectorAll('tr');
+        if (existingRows.length > 0) {
+            const lastRow = existingRows[existingRows.length - 1];
+            const firstInput = lastRow.querySelector('td input');
+            if (firstInput && firstInput.value) {
+                const matches = firstInput.value.match(/-?\d+/g);
+                if (matches && matches.length > 0) {
+                    nextNum = parseInt(matches[matches.length - 1], 10) + 1;
+                } else {
+                    nextNum = existingRows.length + 1;
+                }
+            } else {
+                nextNum = existingRows.length + 1;
+            }
+        }
+
+        const newRow = document.createElement('tr');
+        for (let i = 0; i < colCount; i++) {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'text';
+            
+            if (i === 0) {
+                input.value = nextNum;
+            }
+            
+            td.appendChild(input);
+            newRow.appendChild(td);
+        }
+        
+        const actionTd = document.createElement('td');
+        actionTd.className = 'action-cell';
+        actionTd.innerHTML = '<button type="button" class="del-btn" onclick="removeRow(this)">X</button>';
+        newRow.appendChild(actionTd);
+        
+        tbody.appendChild(newRow);
+    }
+    
+    function addMultipleRows() {
+        const numStr = prompt("How many rows would you like to add?", "5");
+        const count = parseInt(numStr, 10);
+        
+        if (!isNaN(count) && count > 0) {
+            for (let i = 0; i < count; i++) {
+                addRow();
+            }
+        }
+    }
+
+    function removeRow(btn) {
+        const row = btn.closest('tr');
+        row.remove();
+    }
+
+    function resetBuilderGrid() {
+        const headers = document.getElementById('builder-headers');
+        headers.innerHTML = '<th><input type="text" value="Roll"></th><th><input type="text" value="Result"></th><th class="action-cell"></th>';
+        
+        const tbody = document.getElementById('builder-body');
+        tbody.innerHTML = '<tr><td><input type="text" value="1"></td><td><input type="text"></td><td class="action-cell"><button type="button" class="del-btn" onclick="removeRow(this)">X</button></td></tr>';
+    }
+
+    // --- SAVING DATA ---
+    function saveTable() {
+        const category = document.getElementById('new-category').value;
+        const title = document.getElementById('new-title').value;
+        const desc = document.getElementById('new-desc').value;
+
+        if (!title) {
+            alert("A Table Title is required!");
+            return;
+        }
+
+        let generatedHtml = '<table>\n  <tr>\n';
+        
+        const headerInputs = document.querySelectorAll('#builder-headers input');
+        headerInputs.forEach(input => {
+            generatedHtml += `    <th>${input.value}</th>\n`;
+        });
+        generatedHtml += '  </tr>\n';
+
+        const bodyRows = document.querySelectorAll('#builder-body tr');
+        bodyRows.forEach(row => {
+            generatedHtml += '  <tr>\n';
+            const rowInputs = row.querySelectorAll('input');
+            rowInputs.forEach(input => {
+                generatedHtml += `    <td>${input.value}</td>\n`;
+            });
+            generatedHtml += '  </tr>\n';
+        });
+        generatedHtml += '</table>';
+
+        const targetKey = editingTableKey ? editingTableKey : ('custom_' + title.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now());
+
+        const newTableEntry = {
+            title: title,
+            desc: desc,
+            html: generatedHtml,
+            category: category
+        };
+
+        tableData[targetKey] = newTableEntry;
+        
+        let customTables = {};
+        const existingSaves = localStorage.getItem('dccCustomTables');
+        if (existingSaves) {
+            customTables = JSON.parse(existingSaves);
+        }
+        customTables[targetKey] = newTableEntry;
+        localStorage.setItem('dccCustomTables', JSON.stringify(customTables));
+
+        renderTableLinks();
+        
+        editingTableKey = null;
+        showTable(targetKey);
+        
+        const categoryList = document.getElementById(category);
+        if (categoryList && !categoryList.classList.contains('active')) {
+            toggleList(category);
+        }
+    }
+
+    // Startup
+    window.onload = function() {
+        loadFromStorage();
+    };
+</script>
+
+</body>
+</html>
