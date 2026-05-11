@@ -38,5 +38,5 @@ class AIScribe:
             response = self.model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            # A fallback just in case the internet cuts out
+            # A fallback just in case the internet cuts out or API rate limits hit
             return f"The records for Year {year} were lost to the ages. (Error: {e})"
