@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Engine | Fizzbend Games</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f7f6; font-family: sans-serif; }
+        .back-nav { padding: 15px 20px; background: #1a1a1a; color: white; display: flex; align-items: center; }
+        .back-nav a { color: #3498db; text-decoration: none; font-weight: bold; }
+        .back-nav a:hover { text-decoration: underline; }
+        
+        /* The iFrame container that stretches to fit the screen */
+        .app-container {
+            width: 100%;
+            height: calc(100vh - 50px); /* Fill screen minus the header */
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="index.html">← Back to Dashboard</a>
+    </div>
+
+    <iframe 
+        src="https://www.fizzbendgames.com/worldgen" 
+        class="app-container" 
+        title="Fizzbend World Engine">
+    </iframe>
+
+</body>
+</html>
