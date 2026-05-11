@@ -70,6 +70,7 @@ with st.sidebar:
             my_scribe = AIScribe(api_key=api_key)
             st.toast("AI Historian connected!", icon="✅")
         except Exception as e:
+            st.error(f"the real error is: {e}")
             st.warning("Running in static fallback mode. Could not connect to AI.")
         
         # Save to Session State
