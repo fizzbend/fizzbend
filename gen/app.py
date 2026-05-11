@@ -31,7 +31,7 @@ with st.sidebar:
     
     # 1. Seed & Core Settings
     seed_input = st.text_input("World Seed (Leave blank for random)", value="")
-    years_to_sim = st.slider("Years to Simulate per click", 1, 20, 5)
+    years_to_sim = st.slider("Years to Simulate per click", 1)
     
     st.markdown("---")
     
