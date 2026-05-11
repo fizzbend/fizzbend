@@ -26,7 +26,7 @@ st.markdown("""
 # SIDEBAR: THE CONTROL PANEL
 # ==========================================
 with st.sidebar:
-    st.image("https://via.placeholder.com/300x100.png?text=Fizzbend+Games", use_container_width=True) # Replace with your actual logo URL later
+    st.image("https://via.placeholder.com/300x100.png?text=Fizzbend+Games", use_container_width=True) 
     st.title("World Parameters")
     
     # 1. Seed & Core Settings
@@ -61,9 +61,20 @@ with st.sidebar:
         new_world.tech_level = start_tech
         new_world.climate = climate
         
+        # --- THE AI SCRIBE INITIALIZATION ---
+        my_scribe = None
+        try:
+            from ai_scribe import AIScribe
+            # Securely fetch the API key from Streamlit Secrets
+            api_key = st.secrets["GEMINI_API_KEY"]
+            my_scribe = AIScribe(api_key=api_key)
+            st.toast("AI Historian connected!", icon="✅")
+        except Exception as e:
+            st.warning("Running in static fallback mode. Could not connect to AI.")
+        
         # Save to Session State
         st.session_state['my_world'] = new_world
-        st.session_state['engine'] = SimulationEngine(new_world)
+        st.session_state['engine'] = SimulationEngine(new_world, ai_scribe=my_scribe)
         st.success(f"World '{final_seed}' Born!")
 
 # ==========================================
@@ -90,10 +101,10 @@ if 'my_world' in st.session_state:
     colA, colB = st.columns([1, 1])
     with colA:
         if st.button(f"Advance {years_to_sim} Years", use_container_width=True):
-            with st.spinner("Weaving history..."):
+            with st.spinner("The AI is weaving history..."):
                 for _ in range(years_to_sim):
                     engine.advance_year()
-            st.rerun() # Refresh the page to show new data
+            st.rerun() 
             
     with colB:
         # Generate the Word Doc
@@ -114,7 +125,6 @@ if 'my_world' in st.session_state:
         if not world.history_log:
             st.info("The world is new. Click 'Advance Years' to begin history.")
         else:
-            # Display events in reverse order (newest first)
             for event in reversed(world.history_log):
                 st.markdown(f"""
                 <div class='history-card'>
@@ -134,7 +144,6 @@ if 'my_world' in st.session_state:
         st.info("Relics, Notable People, and Cities will appear here as history progresses.")
 
 else:
-    # Landing Screen if no world is initialized
+    # Landing Screen
     st.markdown("### Welcome to the Fizzbend Games World Engine")
     st.write("Use the Control Panel on the left to set your parameters and birth a new world.")
-    st.info("Hint: Try a High Magic, Low Stability world with Tripki and Mutants for a chaotic run!")
