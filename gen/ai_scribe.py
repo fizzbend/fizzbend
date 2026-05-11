@@ -6,7 +6,7 @@ class AIScribe:
         genai.configure(api_key=api_key)
         
         # We use Flash because it is lightning fast and perfect for short text generation
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def chronicle_event(self, year: int, event_type: str, context: dict, stability: int) -> str:
         """
