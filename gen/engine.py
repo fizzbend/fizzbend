@@ -3,38 +3,39 @@ from models import World, Event, Faction
 
 class SimulationEngine:
     def __init__(self, world: World, ai_scribe=None):
-        """
-        Initializes the engine. 
-        ai_scribe is an optional instance of the AIScribe class. 
-        """
         self.world = world
         self.ai_scribe = ai_scribe 
 
-    def advance_year(self):
-        """Advances the world by exactly one year and generates events."""
-        self.world.year += 1
+    def advance_era(self, years_to_sim: int):
+        """Advances the world by multiple years, then asks the AI to summarize the Era."""
+        start_year = self.world.year + 1
+        raw_era_events = []
 
-        # 1. The Global Pulse (Constants and Volatiles Drift)
-        self._apply_variable_drift()
+        # Run the math silently for the requested number of years
+        for _ in range(years_to_sim):
+            self.world.year += 1
+            self._apply_variable_drift()
+            yearly_raw = self._process_factions()
+            
+            if yearly_raw:
+                raw_era_events.append(f"Year {self.world.year}: " + " ".join(yearly_raw))
+            else:
+                raw_era_events.append(f"Year {self.world.year}: A quiet year of recovery.")
 
-        # 2. The Faction Turn (Geopolitics & Expansion)
-        raw_events = self._process_factions()
+        end_year = self.world.year
         
-        # 3. Finalize the Ledger (Send to AI)
-        self._compile_ledger(raw_events)
+        # Now that the math is done, compile the ledger ONCE
+        self._compile_era_ledger(start_year, end_year, raw_era_events)
 
     def _apply_variable_drift(self):
-        """Handles the 'Rubber Band' logic for world variables."""
         self.world.magic_level += random.randint(-2, 2)
         self.world.stability += random.randint(-10, 10)
         
-        # Clamp variables between 0 and 100
         self.world.magic_level = max(0, min(100, self.world.magic_level))
         self.world.stability = max(0, min(100, self.world.stability))
         self.world.tech_level = max(0, min(100, self.world.tech_level))
 
     def _process_factions(self):
-        """Iterates through factions to determine what happens (Math only)."""
         raw_yearly_events = []
         factions = list(self.world.factions.values())
         
@@ -63,30 +64,28 @@ class SimulationEngine:
 
         return raw_yearly_events
 
-    def _compile_ledger(self, raw_events):
-        """Takes all the raw data for the year and asks the AI to write ONE master entry."""
-        if not raw_events:
-            raw_events = ["A completely peaceful, uneventful year of recovery and changing seasons."]
-            self.world.stability += 2 
-            title = "An Era of Quiet"
+    def _compile_era_ledger(self, start_year, end_year, raw_events):
+        """Asks the AI to write ONE master entry for the entire Era."""
+        if start_year == end_year:
+            title = f"The Events of Year {start_year}"
         else:
-            title = f"The Events of Year {self.world.year}"
+            title = f"The Era of {start_year} to {end_year}"
 
-        # --- THE AI WRITER ---
         if self.ai_scribe:
-            desc = self.ai_scribe.chronicle_year(
-                year=self.world.year,
+            desc = self.ai_scribe.chronicle_era(
+                start_year=start_year,
+                end_year=end_year,
                 events_list=raw_events,
                 stability=self.world.stability
             )
         else:
-            desc = f"In year {self.world.year}, the following occurred: " + " ".join(raw_events)
+            desc = f"Between years {start_year} and {end_year}, the following occurred: " + " ".join(raw_events)
 
         master_event = Event(
-            year=self.world.year,
+            year=end_year,  # Attach to the final year of the era
             title=title,
             description=desc,
-            impact_vars={"Events": len(raw_events)}
+            impact_vars={"Years Covered": (end_year - start_year) + 1}
         )
             
         self.world.history_log.append(master_event)
