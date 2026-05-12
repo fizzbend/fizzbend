@@ -101,11 +101,10 @@ if 'my_world' in st.session_state:
     # Action Buttons
     colA, colB = st.columns([1, 1])
     with colA:
-        if st.button(f"Advance {years_to_sim} Years", use_container_width=True):
-            with st.spinner("The AI is weaving history..."):
-                for _ in range(years_to_sim):
-                    engine.advance_year()
-            st.rerun() 
+            if st.button(f"Advance {years_to_sim} Years", use_container_width=True):
+            with st.spinner("The Historian is chronicalling an era..."):
+                engine.advance_era(years_to_sim)
+            st.rerun()
             
     with colB:
         # Generate the Word Doc
