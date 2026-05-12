@@ -31,7 +31,7 @@ with st.sidebar:
     
     # 1. Seed & Core Settings
     seed_input = st.text_input("World Seed (Leave blank for random)", value="")
-    years_to_sim = st.slider("Years to Simulate per click", 1)
+    years_to_sim = st.slider("Years to Simulate per click", 1, 20, 5)
     
     st.markdown("---")
     
@@ -70,7 +70,6 @@ with st.sidebar:
             my_scribe = AIScribe(api_key=api_key)
             st.toast("AI Historian connected!", icon="✅")
         except Exception as e:
-            st.error(f"the real error is: {e}")
             st.warning("Running in static fallback mode. Could not connect to AI.")
         
         # Save to Session State
@@ -101,10 +100,11 @@ if 'my_world' in st.session_state:
     # Action Buttons
     colA, colB = st.columns([1, 1])
     with colA:
+        # ---> UPDATED TO USE THE ERA SUMMARIZER <---
         if st.button(f"Advance {years_to_sim} Years", use_container_width=True):
-            with st.spinner("The Historian is chronicalling an era..."):
+            with st.spinner("The AI is weaving an Era..."):
                 engine.advance_era(years_to_sim)
-            st.rerun()
+            st.rerun() 
             
     with colB:
         # Generate the Word Doc
@@ -126,9 +126,10 @@ if 'my_world' in st.session_state:
             st.info("The world is new. Click 'Advance Years' to begin history.")
         else:
             for event in reversed(world.history_log):
+                # Tweak to display the Era Title beautifully 
                 st.markdown(f"""
                 <div class='history-card'>
-                    <h4>Year {event.year}: {event.title}</h4>
+                    <h4>{event.title}</h4>
                     <p>{event.description}</p>
                 </div>
                 """, unsafe_allow_html=True)
