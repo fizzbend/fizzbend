@@ -29,9 +29,8 @@ with st.sidebar:
     st.image("https://via.placeholder.com/300x100.png?text=Fizzbend+Games", use_container_width=True) 
     st.title("World Parameters")
     
-    # 1. Seed & Core Settings
+    # 1. Seed Setting
     seed_input = st.text_input("World Seed (Leave blank for random)", value="")
-    years_to_sim = st.slider("Years to Simulate per click", 1, 20, 5)
     
     st.markdown("---")
     
@@ -100,10 +99,10 @@ if 'my_world' in st.session_state:
     # Action Buttons
     colA, colB = st.columns([1, 1])
     with colA:
-        # ---> UPDATED TO USE THE ERA SUMMARIZER <---
-        if st.button(f"Advance {years_to_sim} Years", use_container_width=True):
-            with st.spinner("The AI is weaving an Era..."):
-                engine.advance_era(years_to_sim)
+        # ---> HARDCODED ERA ADVANCEMENT <---
+        if st.button("Advance Next Era (10 Years)", use_container_width=True):
+            with st.spinner("The AI is weaving the next Era..."):
+                engine.advance_era(10) # Set to 10 years per click
             st.rerun() 
             
     with colB:
@@ -123,10 +122,9 @@ if 'my_world' in st.session_state:
     with tab1:
         st.markdown("<p class='big-font'>Historical Events</p>", unsafe_allow_html=True)
         if not world.history_log:
-            st.info("The world is new. Click 'Advance Years' to begin history.")
+            st.info("The world is new. Click 'Advance Next Era' to begin history.")
         else:
             for event in reversed(world.history_log):
-                # Tweak to display the Era Title beautifully 
                 st.markdown(f"""
                 <div class='history-card'>
                     <h4>{event.title}</h4>
