@@ -100,9 +100,9 @@ if 'my_world' in st.session_state:
     colA, colB = st.columns([1, 1])
     with colA:
         # ---> HARDCODED ERA ADVANCEMENT <---
-        if st.button("Advance Next Era (10 Years)", use_container_width=True):
+        if st.button("Advance Next Era", use_container_width=True):
             with st.spinner("The AI is weaving the next Era..."):
-                engine.advance_era(10) # Set to 10 years per click
+                engine.advance_era(1) # Set to 1 era per click
             st.rerun() 
             
     with colB:
