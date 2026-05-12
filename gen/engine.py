@@ -1,5 +1,40 @@
-def _process_factions(self):
-        """Iterates through factions to determine what happens, but does NOT write the text yet."""
+import random
+from models import World, Event, Faction
+
+class SimulationEngine:
+    def __init__(self, world: World, ai_scribe=None):
+        """
+        Initializes the engine. 
+        ai_scribe is an optional instance of the AIScribe class. 
+        """
+        self.world = world
+        self.ai_scribe = ai_scribe 
+
+    def advance_year(self):
+        """Advances the world by exactly one year and generates events."""
+        self.world.year += 1
+
+        # 1. The Global Pulse (Constants and Volatiles Drift)
+        self._apply_variable_drift()
+
+        # 2. The Faction Turn (Geopolitics & Expansion)
+        raw_events = self._process_factions()
+        
+        # 3. Finalize the Ledger (Send to AI)
+        self._compile_ledger(raw_events)
+
+    def _apply_variable_drift(self):
+        """Handles the 'Rubber Band' logic for world variables."""
+        self.world.magic_level += random.randint(-2, 2)
+        self.world.stability += random.randint(-10, 10)
+        
+        # Clamp variables between 0 and 100
+        self.world.magic_level = max(0, min(100, self.world.magic_level))
+        self.world.stability = max(0, min(100, self.world.stability))
+        self.world.tech_level = max(0, min(100, self.world.tech_level))
+
+    def _process_factions(self):
+        """Iterates through factions to determine what happens (Math only)."""
         raw_yearly_events = []
         factions = list(self.world.factions.values())
         
@@ -23,7 +58,6 @@ def _process_factions(self):
                     event_type = "Border Dispute"
                     self.world.stability -= 2
 
-                # Save the raw data for the AI to read later
                 raw_event_data = f"The {faction.race_name} engaged in a {event_type}."
                 raw_yearly_events.append(raw_event_data)
 
@@ -33,12 +67,12 @@ def _process_factions(self):
         """Takes all the raw data for the year and asks the AI to write ONE master entry."""
         if not raw_events:
             raw_events = ["A completely peaceful, uneventful year of recovery and changing seasons."]
-            self.world.stability += 2 # Peace heals stability
+            self.world.stability += 2 
             title = "An Era of Quiet"
         else:
             title = f"The Events of Year {self.world.year}"
 
-        # --- THE AI WRITER (Only called ONCE per year now) ---
+        # --- THE AI WRITER ---
         if self.ai_scribe:
             desc = self.ai_scribe.chronicle_year(
                 year=self.world.year,
@@ -46,10 +80,8 @@ def _process_factions(self):
                 stability=self.world.stability
             )
         else:
-            # Fallback if AI is offline
             desc = f"In year {self.world.year}, the following occurred: " + " ".join(raw_events)
 
-        # Create one master Event card for the UI
         master_event = Event(
             year=self.world.year,
             title=title,
