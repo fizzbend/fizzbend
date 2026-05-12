@@ -6,9 +6,9 @@ class AIScribe:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.5-flash')
 
-    def chronicle_year(self, year: int, events_list: list, stability: int) -> str:
+    def chronicle_era(self, start_year: int, end_year: int, events_list: list, stability: int) -> str:
         """
-        Takes a list of ALL events that happened this year and writes a single cohesive summary.
+        Takes a list of ALL events across multiple years and writes a sweeping Era summary.
         """
         tone = "grim, chaotic, and brutal" if stability < 40 else "legendary, stoic, and historical"
         if stability > 70:
@@ -18,15 +18,15 @@ class AIScribe:
 
         prompt = f"""
         You are the 'Fizzbend Historian', chronicling a fantasy world.
-        Below is raw data of everything that occurred in Year {year}. 
+        Below is the raw data of everything that occurred between Year {start_year} and Year {end_year}. 
         
         Raw Data: 
         {raw_data}
         
         Guidelines:
-        - Write a cohesive 3-to-4 sentence historical summary of this year.
-        - Weave these separate events together into a narrative if possible.
-        - The current world stability is {stability}/100. The tone must be: {tone}.
+        - Write a cohesive 4-to-5 sentence historical summary of this Era.
+        - Weave these separate yearly events together into a broader narrative or trend.
+        - The current world stability at the end of this era is {stability}/100. The tone must be: {tone}.
         - Do not use flowery, poetic language. Keep it grounded and historical.
         - Output ONLY the historical text. Do not include bullet points.
         """
@@ -35,17 +35,12 @@ class AIScribe:
         for attempt in range(max_retries):
             try:
                 response = self.model.generate_content(prompt)
-                
-                # FREE TIER PACING: 5 requests per minute means we must wait 12-15 seconds
-                time.sleep(15) 
                 return response.text.strip()
-                
             except Exception as e:
                 if "429" in str(e):
-                    # If we STILL hit the limit, wait 30 seconds for the minute to roll over
-                    time.sleep(30) 
+                    time.sleep(10) # Brief pause if we hit a random snag
                     continue
                 else:
-                    return f"The records for Year {year} were lost. (Error: {e})"
+                    return f"The records for the Era of {start_year}-{end_year} were lost. (Error: {e})"
         
-        return f"The records for Year {year} were heavily fragmented due to missing archives."
+        return f"The archives from Year {start_year} to {end_year} were heavily fragmented."
