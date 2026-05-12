@@ -14,7 +14,6 @@ class AIScribe:
         if stability > 70:
             tone = "prosperous, peaceful, and optimistic"
 
-        # Format the raw events into a readable list for the AI
         raw_data = "\n".join([f"- {e}" for e in events_list])
 
         prompt = f"""
@@ -36,12 +35,15 @@ class AIScribe:
         for attempt in range(max_retries):
             try:
                 response = self.model.generate_content(prompt)
-                # Add a mandatory 2-second cooldown to pace the Free Tier limit
-                time.sleep(2) 
+                
+                # FREE TIER PACING: 5 requests per minute means we must wait 12-15 seconds
+                time.sleep(15) 
                 return response.text.strip()
+                
             except Exception as e:
                 if "429" in str(e):
-                    time.sleep(10) # Pause and retry
+                    # If we STILL hit the limit, wait 30 seconds for the minute to roll over
+                    time.sleep(30) 
                     continue
                 else:
                     return f"The records for Year {year} were lost. (Error: {e})"
